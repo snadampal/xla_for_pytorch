@@ -604,6 +604,23 @@ std::string XLATensor::DumpHloComputation(
                             : std::string();
 }
 
+XLATensor::ShardingSpec* XLATensor::sharding_spec() {
+  XLA_CHECK(data_ != nullptr) << "Trying to access a null cursor";
+  return sharding_spec_.get();
+}
+void XLATensor::SetShardingSpec(
+    const std::vector<std::vector<int64_t>>& tile_assignment, bool replicated) {
+  sharding_spec_ =
+      std::make_shared<XLATensor::ShardingSpec>(tile_assignment, replicated);
+  if (replicated) {
+    auto hlo_sharding = xla::HloSharding::Replicate();
+  } else {
+    // TODO: currently forcing maximal sharding
+    xla::Array<int64_t> maximal({1});
+    auto hlo_sharding = xla::HloSharding::Tile(maximal);
+  }
+}
+
 void XLATensor::SetXlaData(xla::ComputationClient::DataPtr xla_data) {
   SetXlaData(std::move(xla_data), /*sync=*/true);
 }
