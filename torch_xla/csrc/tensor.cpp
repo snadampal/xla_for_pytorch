@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/memory/memory.h"
 #include "absl/strings/str_join.h"
 #include "tensorflow/compiler/xla/literal_util.h"
@@ -604,21 +605,21 @@ std::string XLATensor::DumpHloComputation(
                             : std::string();
 }
 
-XLATensor::ShardingSpec* XLATensor::sharding_spec() {
-  XLA_CHECK(data_ != nullptr) << "Trying to access a null cursor";
-  return sharding_spec_.get();
+std::shared_ptr<XLATensor::ShardingSpec> XLATensor::sharding_spec() const {
+  XLA_CHECK(data()->sharding_spec != nullptr)
+      << "Trying to access a null cursor";
+  return data()->sharding_spec;
 }
-void XLATensor::SetShardingSpec(
-    const std::vector<std::vector<int64_t>>& tile_assignment, bool replicated) {
-  sharding_spec_ =
-      std::make_shared<XLATensor::ShardingSpec>(tile_assignment, replicated);
-  if (replicated) {
-    auto hlo_sharding = xla::HloSharding::Replicate();
-  } else {
-    // TODO: currently forcing maximal sharding
-    xla::Array<int64_t> maximal({1});
-    auto hlo_sharding = xla::HloSharding::Tile(maximal);
-  }
+bool XLATensor::IsShardingAnnotated() const {
+  return data()->sharding_spec != nullptr;
+}
+void XLATensor::SetShardingSpec(const xla::OpSharding& sharding,
+                                bool replicated, bool manual) {
+  auto new_sharding_spec =
+      std::make_shared<ShardingSpec>(sharding, replicated, manual);
+  data()->sharding_spec = new_sharding_spec;
+  XLA_CHECK(bool(data()->ir_value.node)) << "Tyring to access a null cursor";
+  data()->ir_value.node->SetSharding(&new_sharding_spec->sharding);
 }
 
 void XLATensor::SetXlaData(xla::ComputationClient::DataPtr xla_data) {
