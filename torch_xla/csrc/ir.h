@@ -155,7 +155,7 @@ class Node : public torch::lazy::Node {
   void SetSharding(const xla::OpSharding* sharding) {
     output_sharding_ = sharding;
   }
-  void ClearSharding() { output_sharding_ = nulltpr; }
+  void ClearSharding() { output_sharding_ = nullptr; }
 
  private:
   // Adds node's index output number as operand.

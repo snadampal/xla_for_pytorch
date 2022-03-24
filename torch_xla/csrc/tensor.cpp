@@ -621,6 +621,12 @@ void XLATensor::SetShardingSpec(const xla::OpSharding& sharding,
   XLA_CHECK(bool(data()->ir_value.node)) << "Tyring to access a null cursor";
   data()->ir_value.node->SetSharding(&new_sharding_spec->sharding);
 }
+void XLATensor::ClearShardingSpec() {
+  if (data()->ir_value.node != nullptr) {
+    data()->ir_value.node->ClearSharding();
+  }
+  data()->sharding_spec = nullptr;
+}
 
 void XLATensor::SetXlaData(xla::ComputationClient::DataPtr xla_data) {
   SetXlaData(std::move(xla_data), /*sync=*/true);

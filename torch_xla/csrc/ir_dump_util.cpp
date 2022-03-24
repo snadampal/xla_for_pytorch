@@ -261,7 +261,9 @@ std::string DumpUtil::ToHlo(absl::Span<const Value> values,
        lowering_ctx.GetEmittedOutputs()) {
     const ir::Node* node = elem.first.node;
     auto instruction = XlaBuilderFriend::GetInstruction(elem.second);
-    *instruction->mutable_sharding() = *node->GetSharding();
+    if (node->GetSharding() != nullptr) {
+      *instruction->mutable_sharding() = *node->GetSharding();
+    }
   }
 
   xla::XlaComputation computation = ConsumeValue(lowering_ctx.Build());
