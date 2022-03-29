@@ -256,6 +256,7 @@ std::string DumpUtil::ToHlo(absl::Span<const Value> values,
         torch::lazy::Output(ir_value.node.get(), ir_value.index));
     lowering_ctx.AddResult(root);
   }
+  // TODO: if (is_spmd)
   // Annotate HLO sharding selectively in the compuation.
   ir::ShardingUtil::SetHloSharding(&lowering_ctx);
 

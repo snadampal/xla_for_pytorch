@@ -155,7 +155,7 @@ class Node : public torch::lazy::Node {
   void SetSharding(const xla::OpSharding* sharding) {
     output_sharding_ = sharding;
   }
-  void ClearSharding() { output_sharding_ = nullptr; }
+  void ClearSharding() { output_sharding_ = nulltpr; }
 
  private:
   // Adds node's index output number as operand.
@@ -182,8 +182,6 @@ class Node : public torch::lazy::Node {
   std::vector<torch::lazy::Output> operands_as_outputs_;
   // We use a set for uses, as we want deterministic use sequencing.
   std::set<Use> uses_;
-<<<<<<< HEAD
-=======
   // The hash value of this node.
   torch::lazy::hash_t node_hash_ = 0;
   // The hash value of the graph rooted at this node.
@@ -197,7 +195,6 @@ class Node : public torch::lazy::Node {
   // Experimental sharding annotation attached to the IR node.
   // TODO: make sure that view update doesn't reset this.
   const xla::OpSharding* output_sharding_ = nullptr;
->>>>>>> db43aebe (Tensor sharding annotation and sharded HLO dumping function.)
 };
 
 // RAII data structure to be used a stack variable to enter a new IR scope. IR
