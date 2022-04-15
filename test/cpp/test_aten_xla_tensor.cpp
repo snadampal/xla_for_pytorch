@@ -11008,5 +11008,21 @@ TEST_F(AtenXlaTensorTest, TestNanToNumOut) {
   ExpectCounterChanged("xla::nan_to_num", cpp_test::GetIgnoredCounters());
 }
 
+TEST_F(AtenXlaTensorTest, TestRandpermOut) {
+  int64_t n = 10;
+  at::Tensor out = at::zeros({n}, at::dtype(at::kInt));
+  ForEachDevice([&](const Device& device) {
+    at::Tensor xla_out = bridge::CreateXlaTensor(out, device);
+    at::Tensor xla_res = at::randperm_out(xla_out, n, c10::nullopt);
+    std::vector<int64_t> res_vec(xla_res.data_ptr<int64_t>(),
+                                 xla_res.data_ptr<int64_t>() + n);
+    EXPECT_TRUE(res_vec.size() == n && xla::IsPermutation(res_vec));
+  });
+
+  ExpectCounterNotChanged("aten::.*", cpp_test::GetIgnoredCounters());
+  ExpectCounterChanged("xla::randperm.generator_out",
+                       cpp_test::GetIgnoredCounters());
+}
+
 }  // namespace cpp_test
 }  // namespace torch_xla
