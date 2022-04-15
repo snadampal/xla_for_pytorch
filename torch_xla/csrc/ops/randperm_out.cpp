@@ -20,10 +20,9 @@ xla::Shape NodeOutputShape(int64_t n) {
 }  // namespace
 
 RandpermOut::RandpermOut(int64_t n)
-    : Node(
-          torch::lazy::OpKind(at::aten::randperm), {},
-          [&]() { return NodeOutputShape(n); },
-          /*num_outputs=*/1, torch::lazy::MHash(n)),
+    : Node(torch::lazy::OpKind(at::aten::randperm), {},
+           [&]() { return NodeOutputShape(n); },
+           /*num_outputs=*/1, torch::lazy::MHash(n)),
       n_(n) {}
 
 torch::lazy::NodePtr RandpermOut::Clone(OpList operands) const {
@@ -31,7 +30,6 @@ torch::lazy::NodePtr RandpermOut::Clone(OpList operands) const {
 }
 
 XlaOpVector RandpermOut::Lower(LoweringContext* loctx) const {
-  // xla::XlaOp out = loctx->GetOutputOp(operand(0));
   xla::XlaOp op_randperm_out = BuildRandpermOut(n_);
   return ReturnOp(op_randperm_out, loctx);
 }

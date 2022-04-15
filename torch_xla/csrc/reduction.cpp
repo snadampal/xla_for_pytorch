@@ -541,6 +541,12 @@ xla::XlaOp BuildLogsumexp(xla::XlaOp input,
  * permutation is truely uniformaly distributed. However, this XLA
  * impementation has not address this pitfall yet. It simply sorts an arange
  * tensor of size n with random keys.
+ *
+ * TODO: Implement post-processing for the generated random permutation to
+ * resolve this pitfall, i.e. ensuring that the permutations are truly
+ * randomly uniformly distributed.
+ * Link to PyTorch CUDA implementation of this post-processing:
+ * https://github.com/pytorch/pytorch/blob/master/aten/src/ATen/native/cuda/Randperm.cu
  */
 xla::XlaOp BuildRandpermOut(int64_t n) {
   xla::XlaBuilder builder("RandpermOut");
