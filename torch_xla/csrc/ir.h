@@ -26,8 +26,6 @@ namespace ir {
 class Node;
 class LoweringContext;
 
-using NodePtr = std::shared_ptr<Node>;
-
 using XlaOpVector = tensorflow::gtl::InlinedVector<xla::XlaOp, 1>;
 
 // Represents a use of the output of a given node.
@@ -62,11 +60,9 @@ using OutputMap =
 // Represents an input/operand for a Node object.
 struct Value : public torch::lazy::Value {
   Value() = default;
-  Value(NodePtr node, size_t index = 0)
+  Value(torch::lazy::NodePtr node, size_t index = 0)
       : torch::lazy::Value(std::dynamic_pointer_cast<torch::lazy::Node>(node),
-                           index),
-        node(std::move(node)),
-        index(index) {}
+                           index) {}
 
   // Retrieves the shape of this value. If the IR Node generating the value is a
   // multi-output node, the shape returned by this API will not be the full
@@ -74,15 +70,6 @@ struct Value : public torch::lazy::Value {
   // To retrieve the full tuple shape in that case, use the node_shape() API.
   const xla::Shape& xla_shape() const;
   const xla::Shape& xla_node_shape() const;
-
-  torch::lazy::hash_t hash() const;
-
-  operator bool() const { return node != nullptr; }
-
-  Node* operator->() const { return node.get(); }
-
-  NodePtr node;
-  size_t index = 0;
 };
 
 using OpList = absl::Span<const Value>;
@@ -122,29 +109,14 @@ class Node : public torch::lazy::Node {
   // multi-output node, output_index must be zero.
   const xla::Shape& xla_shape(size_t output_index) const;
 
-  // Retrieves the full shape of the IR Node.
-  c10::ArrayRef<torch::lazy::Shape> shapes() const override { return shapes_; }
-
-  // Retrieves the shape of the output at a given index.
-  const torch::lazy::Shape& shape(size_t output_index = 0) const override;
-
-  const std::vector<torch::lazy::Output>& operands() const override {
-    return operands_as_outputs_;
-  }
-
-  const torch::lazy::Output& operand(size_t i) const override {
-    return operands_as_outputs_.at(i);
-  }
-
   const std::set<Use>& uses() const { return uses_; }
 
-  void ReplaceOperand(size_t operand_no, NodePtr node, size_t index = 0);
+  void ReplaceOperand(size_t operand_no, torch::lazy::NodePtr node,
+                      size_t index = 0);
 
-  void ReplaceAllUsesWith(NodePtr node, size_t index = 0);
+  void ReplaceAllUsesWith(torch::lazy::NodePtr node, size_t index = 0);
 
-  virtual std::string ToString() const override;
-
-  virtual NodePtr Clone(OpList operands) const;
+  virtual torch::lazy::NodePtr Clone(OpList operands) const;
 
   virtual XlaOpVector Lower(LoweringContext* loctx) const;
 
@@ -153,9 +125,15 @@ class Node : public torch::lazy::Node {
   XlaOpVector ReturnOps(absl::Span<const xla::XlaOp> ops,
                         LoweringContext* loctx) const;
 
+  torch::lazy::hash_t node_hash() const { return node_hash_; }
+
+  torch::lazy::hash_t hash() const override { return dag_hash_; }
+
+  torch::lazy::hash_t shapeHash() const override { return dag_hash_; }
+
  private:
   // Adds node's index output number as operand.
-  void AddOperand(NodePtr node, size_t index = 0);
+  void AddOperand(torch::lazy::NodePtr node, size_t index = 0);
 
   void AddUse(Use use) { uses_.insert(std::move(use)); }
 
@@ -170,14 +148,10 @@ class Node : public torch::lazy::Node {
   static std::vector<torch::lazy::SourceLocation> GetFrameInfo();
 
   xla::Shape xla_shape_;
-  std::vector<torch::lazy::Shape> shapes_;
-  // A node holds a real reference to its operands.
-  std::vector<NodePtr> operands_;
-  // Outputs do not hold references on the nodes, and neither do the uses, since
-  // otherwise we get into circular reference counting.
-  std::vector<torch::lazy::Output> operands_as_outputs_;
   // We use a set for uses, as we want deterministic use sequencing.
   std::set<Use> uses_;
+  torch::lazy::hash_t node_hash_;
+  torch::lazy::hash_t dag_hash_;
 };
 
 // RAII data structure to be used a stack variable to enter a new IR scope. IR
@@ -196,7 +170,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Node& node) {
 }
 
 template <typename T, typename... Args>
-NodePtr MakeNode(Args&&... args) {
+torch::lazy::NodePtr MakeNode(Args&&... args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
