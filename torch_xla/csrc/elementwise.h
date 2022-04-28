@@ -81,4 +81,7 @@ xla::XlaOp BuildGelu(xla::XlaOp input);
 // Computes the backward of GELU.
 xla::XlaOp BuildGeluBackward(xla::XlaOp grad_output, xla::XlaOp input);
 
+// Computes the LogSigmoid function of input.
+xla::XlaOp LogSigmoid(xla::XlaOp input);
+
 }  // namespace torch_xla

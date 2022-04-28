@@ -317,4 +317,8 @@ xla::XlaOp BuildGeluBackward(xla::XlaOp grad_output, xla::XlaOp input) {
   return grad_output * (half * (one + scratch) + input * dinput * kAlpha);
 }
 
+xla::XlaOp LogSigmoid(xla::XlaOp input) {
+  const xla::Shape& shape = XlaHelpers::ShapeOfXlaOp(input);
+}
+
 }  // namespace torch_xla
