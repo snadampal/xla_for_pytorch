@@ -82,6 +82,10 @@ xla::XlaOp BuildGelu(xla::XlaOp input);
 xla::XlaOp BuildGeluBackward(xla::XlaOp grad_output, xla::XlaOp input);
 
 // Computes the LogSigmoid function of input.
-xla::XlaOp LogSigmoid(xla::XlaOp input);
+std::vector<xla::XlaOp> BuildLogSigmoid(xla::XlaOp input);
+
+xla::XlaOp BuildLogSigmoidBackward(xla::XlaOp grad_output,
+                                        xla::XlaOp input,
+                                        xla::XlaOp buffer)
 
 }  // namespace torch_xla
