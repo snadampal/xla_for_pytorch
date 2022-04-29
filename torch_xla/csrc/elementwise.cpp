@@ -317,7 +317,7 @@ xla::XlaOp BuildGeluBackward(xla::XlaOp grad_output, xla::XlaOp input) {
   return grad_output * (half * (one + scratch) + input * dinput * kAlpha);
 }
 
-std::vector<xla::XlaOp> LogSigmoid(xla::XlaOp input) {
+std::vector<xla::XlaOp> BuildLogSigmoid(xla::XlaOp input) {
   const xla::Shape& shape = XlaHelpers::ShapeOfXlaOp(input);
   xla::XlaOp neg_input = xla::Neg(input);
   xla::XlaOp zero = xla::Zero(input.builder(), shape.element_type());
