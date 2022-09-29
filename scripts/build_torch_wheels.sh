@@ -118,10 +118,10 @@ function install_llvm_clang() {
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
     sudo apt-get update
   fi
-  sudo apt-get install -y clang-8 clang++-8
-  maybe_append 'export CC=clang-8 CXX=clang++-8' ~/.bashrc
-  export CC=clang-8 CXX=clang++-8
-  sudo update-alternatives --install /usr/bin/clang++ clang++ $(which clang++-8) 70
+#  sudo apt-get install -y clang-8 clang++-8
+#  maybe_append 'export CC=clang-8 CXX=clang++-8' ~/.bashrc
+#  export CC=clang-8 CXX=clang++-8
+#  sudo update-alternatives --install /usr/bin/clang++ clang++ $(which clang++-8) 70
 }
 
 function install_req_packages() {
